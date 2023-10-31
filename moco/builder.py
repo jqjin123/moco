@@ -65,7 +65,7 @@ class MoCo(nn.Module):
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
         # gather keys before updating queue
-        keys = concat_all_gather(keys)
+        keys = concat_all_gather(keys) # keys (batch, dim)
 
         batch_size = keys.shape[0]
 
@@ -79,7 +79,7 @@ class MoCo(nn.Module):
         self.queue_ptr[0] = ptr
 
     @torch.no_grad()
-    def _batch_shuffle_ddp(self, x):
+    def _batch_shuffle_ddp(self, x): # x -> [batch, channel, w, h]
         """
         Batch shuffle, for making use of BatchNorm.
         *** Only support DistributedDataParallel (DDP) model. ***
@@ -107,7 +107,7 @@ class MoCo(nn.Module):
         return x_gather[idx_this], idx_unshuffle
 
     @torch.no_grad()
-    def _batch_unshuffle_ddp(self, x, idx_unshuffle):
+    def _batch_unshuffle_ddp(self, x, idx_unshuffle): # x -> [batch, dim]
         """
         Undo batch shuffle.
         *** Only support DistributedDataParallel (DDP) model. ***
@@ -125,7 +125,7 @@ class MoCo(nn.Module):
 
         return x_gather[idx_this]
 
-    def forward(self, im_q, im_k):
+    def forward(self, im_q, im_k): # im_q im_k 是一对正样本, 来自同一张图片的不同增强
         """
         Input:
             im_q: a batch of query images
